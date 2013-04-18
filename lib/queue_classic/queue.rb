@@ -13,11 +13,7 @@ module QC
     end
 
     def lock(top_bound=TOP_BOUND)
-      Queries.lock_head(name, top_bound)
-    end
-
-    def delete(id)
-      Queries.delete(id)
+      Queries.pop(name)
     end
 
     def delete_all

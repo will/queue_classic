@@ -9,7 +9,6 @@ module QC
       elsif args.length <= 1
         opts = args.first || {}
         q_name           = opts[:q_name]           || QC::QUEUE
-        top_bound        = opts[:top_bound]        || QC::TOP_BOUND
         fork_worker      = opts[:fork_worker]      || QC::FORK_WORKER
         listening_worker = opts[:listening_worker] || QC::LISTENING_WORKER
         max_attempts     = opts[:max_attempts]     || QC::MAX_LOCK_ATTEMPTS
@@ -91,9 +90,6 @@ module QC
           rescue Object => e
             log(:level => :debug, :action => "failed_work", :job => job[:id], :error => e.inspect)
             handle_failure(job, e)
-          ensure
-            @queue.delete(job[:id])
-            log(:level => :debug, :action => "delete_job", :job => job[:id])
           end
         end
       end

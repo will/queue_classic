@@ -4,38 +4,26 @@ module QC
 
     def insert(q_name, method, args, chan=nil)
       QC.log_yield(:action => "insert_job") do
-        s = "INSERT INTO #{TABLE_NAME} (q_name, method, args) VALUES ($1, $2, $3)"
-        res = Conn.execute(s, q_name, method, OkJson.encode(args))
-        Conn.notify(chan) if chan
+        Conn.connection.rpush q_name, OkJson.encode({'method' => method, 'args' => args})
+        #Conn.notify(chan) if chan
       end
     end
 
-    def lock_head(q_name, top_bound)
-      s = "SELECT * FROM lock_head($1, $2)"
-      if r = Conn.execute(s, q_name, top_bound)
-        {
-          :id     => r["id"],
-          :method => r["method"],
-          :args   => OkJson.decode(r["args"])
-        }
-      end
+    def pop(q_name)
+      res = Conn.connection.blpop(q_name).last
+      json = OkJson.decode( res )
+      {
+        method: json['method'],
+        args:   json['args']
+      }
     end
 
-    def count(q_name=nil)
-      s = "SELECT COUNT(*) FROM #{TABLE_NAME}"
-      s << " WHERE q_name = $1" if q_name
-      r = Conn.execute(*[s, q_name].compact)
-      r["count"].to_i
-    end
-
-    def delete(id)
-      Conn.execute("DELETE FROM #{TABLE_NAME} where id = $1", id)
+    def count(q_name)
+      Conn.connection.llen(q_name)
     end
 
     def delete_all(q_name=nil)
-      s = "DELETE FROM #{TABLE_NAME}"
-      s << " WHERE q_name = $1" if q_name
-      Conn.execute(*[s, q_name].compact)
+      Conn.connection.del q_name if q_name
     end
 
   end

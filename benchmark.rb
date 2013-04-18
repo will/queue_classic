@@ -1,4 +1,4 @@
-require "queue_classic"
+require "./lib/queue_classic"
 require "benchmark"
 
 N = 5
@@ -15,10 +15,10 @@ puts("num_jobs=#{QC.count}")
 def new_worker
   QC::Worker.new(
     QC::QUEUE,
-    QC::TOP_BOUND,
+    nil,
     QC::FORK_WORKER,
     QC::LISTENING_WORKER,
-    QC::MAX_LOCK_ATTEMPTS
+    nil
   )
 end
 
